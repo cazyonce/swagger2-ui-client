@@ -1,0 +1,146 @@
+<nz-layout style="margin-top: 10px">
+  <div style="background-color: #fff;z-index: 4;bottom: 0;position: fixed;top: 74px;">
+    <div class="menus">
+      <ul nz-menu nzMode="inline" [nzInlineCollapsed]="isCollapsed">
+        <li nz-menu-item routerLinkActive="ant-menu-item-selected">
+          <a routerLink="synopsis">接口文档简介</a>
+        </li>
+      </ul>
+      <ul nz-menu nzMode="inline" [nzInlineCollapsed]="isCollapsed">
+        <ng-container *ngIf="doc">
+          <li nz-submenu nzOpen [nzTitle]="tag.name" *ngFor="let tag of doc.tags">
+            <ul>
+              <ng-container *ngFor="let path of doc.paths| keyvalue">
+                <ng-container *ngFor="let pathMethod of path.value| keyvalue">
+                  <ng-container *ngFor="let pathTag of pathMethod.value.tags">
+                    <li nz-menu-item routerLinkActive="ant-menu-item-selected" *ngIf="pathTag == tag.name">
+                      <a [routerLink]="pathMethod.value.summary"
+                        (click)="onClickAPIPath(path.key, pathMethod.key, pathMethod.value)">{{pathMethod.value.summary}}</a>
+                    </li>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
+            </ul>
+          </li>
+        </ng-container>
+      </ul>
+    </div>
+  </div>
+</nz-layout>
+<nz-content>
+  <div class="inner-content">
+    <div style="height: 100%;overflow: auto;padding-top: 30px;">
+      <app-document-synopsis *ngIf="doc && synopsisPage" [info]="doc.info"></app-document-synopsis>
+      <app-document-detail *ngIf="doc && !synopsisPage" [documentDetail]="documentDetail"></app-document-detail>
+    </div>
+
+    <!-- <router-outlet></router-outlet> -->
+  </div>
+</nz-content>
+<!-- <nz-content>
+      <div class="inner-content">
+        <h1 style="font-size: 32px;word-wrap: break-word;">获取用户所有信息</h1>
+        <h2 style="font-size: 20px;line-height: 20px;margin-bottom: 16px;font-weight: 700;">接口说明</h2>
+        <div>获取用户全部信息，包括微信，qq，vip，态势感知，日志信息，若管理员已登录并当前用户不存在，会自动注入。</div>
+        <h2 style="font-size: 20px;line-height: 20px;margin-top: 30px;margin-bottom: 16px;font-weight: 700;">请求方式</h2>
+        <span style="font-weight: 700;margin-right: 10px;">GET</span>
+        <h2 style="font-size: 20px;line-height: 20px;margin-top: 30px;margin-bottom: 16px;font-weight: 700;">URL示例</h2>
+        <div>{{"/api/user/allinfo/{uid}"}}</div>  
+        <nz-tabset>
+            <nz-tab nzTitle="数据说明">
+                <h2 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">请求参数</h2>
+                <nz-table #middleTable nzSize="middle" [nzData]="data">
+                    <thead>
+                      <tr>
+                        <th>参数名称</th>
+                        <th>类型</th>
+                        <th>是否必选</th>
+                        <th>示例值</th>
+                        <th>描述</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let data of middleTable.data">
+                        <td>uid</td>
+                        <td>int</td>
+                        <td>是</td>
+                        <td>0</td>
+                        <td>用户ID</td>
+                      </tr>
+                      <tr >
+                          <td>uid</td>
+                          <td>int</td>
+                          <td>是</td>
+                          <td>0</td>
+                          <td>用户ID</td>
+                        </tr>
+                    </tbody>
+                  </nz-table>
+                  <h2 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">返回数据</h2>
+                  <nz-table #middleTable nzSize="middle" [nzData]="data">
+                      <thead>
+                        <tr>
+                          <th>数据名称</th>
+                          <th>类型</th>
+                          <th>示例值</th>
+                          <th>描述</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>code</td><td>int</td><td>200</td><td>状态码</td></tr>
+                        <tr><td>message</td><td>int</td><td>操作成功</td><td>操作结果消息</td></tr>
+                        <tr><td>data</td><td>int</td><td>{{"{}"}}</td><td>数据</td></tr>
+                      </tbody>
+                    </nz-table>
+            </nz-tab>
+            <nz-tab nzTitle="接口调试">
+                <h2 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">请求参数</h2>
+                <h3 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">URL参数</h3>
+                <nz-table #middleTable nzSize="middle" [nzData]="data">
+                    <thead>
+                      <tr>
+                        <th>参数名称</th>
+                        <th>类型</th>
+                        <th>是否必选</th>
+                        <th>示例值</th>
+                        <th>描述</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let data of middleTable.data">
+                        <td>uid</td>
+                        <td>int</td>
+                        <td>是</td>
+                        <td>0</td>
+                        <td>用户ID</td>
+                      </tr>
+                      <tr >
+                          <td>uid</td>
+                          <td>int</td>
+                          <td>是</td>
+                          <td>0</td>
+                          <td>用户ID</td>
+                        </tr>
+                    </tbody>
+                  </nz-table>
+                  <h2 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">返回数据</h2>
+                  <nz-table #middleTable nzSize="middle" [nzData]="data">
+                      <thead>
+                        <tr>
+                          <th>数据名称</th>
+                          <th>类型</th>
+                          <th>示例值</th>
+                          <th>描述</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>code</td><td>int</td><td>200</td><td>状态码</td></tr>
+                        <tr><td>message</td><td>int</td><td>操作成功</td><td>操作结果消息</td></tr>
+                        <tr><td>data</td><td>int</td><td>{{"{}"}}</td><td>数据</td></tr>
+                      </tbody>
+                    </nz-table>
+            </nz-tab>
+          </nz-tabset>
+            
+        </div>
+    </nz-content> -->

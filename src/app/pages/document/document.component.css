@@ -1,0 +1,24 @@
+nz-content {
+  position: absolute;
+  padding-left: 318px;
+  width: 100%;
+  height: 100%;
+}
+
+.inner-content {
+  bottom: 0;
+  position: fixed;
+  top: 74px;
+  width: 100%;
+  right: 0;
+  padding-left: 364px;
+
+}
+.menus {
+  height: 100%;
+  width: 318px;
+  overflow: auto;
+}
+/* .menus:hover {
+  overflow: auto;
+} */

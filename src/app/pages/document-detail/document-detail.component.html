@@ -1,0 +1,483 @@
+<h1 style="font-size: 32px;word-wrap: break-word;">{{documentDetail?.detail?.summary}}</h1>
+<ng-container *ngIf="documentDetail?.detail?.description">
+    <h2 style="font-size: 20px;line-height: 20px;margin-bottom: 16px;font-weight: 700;">接口说明</h2>
+    <div>{{documentDetail?.detail?.description}}</div>
+</ng-container>
+<h2 style="font-size: 20px;line-height: 20px;margin-top: 30px;margin-bottom: 16px;font-weight: 700;">请求方式</h2>
+<span style="font-weight: 700;margin-right: 10px;">{{documentDetail?.method | uppercase}}</span>
+<h2 style="font-size: 20px;line-height: 20px;margin-top: 30px;margin-bottom: 16px;font-weight: 700;">URL示例</h2>
+<p nz-paragraph nzCopyable nzContent="{{currentURLProtocol + '//' + currentURLHost + documentDetail?.path}}"></p>
+<nz-tabset style="margin-top: 30px;">
+    <nz-tab nzTitle="数据说明">
+        <ng-container *ngIf="documentDetail?.detail?.parameters">
+            <h2 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">
+                请求参数111</h2>
+            <nz-table #parameterTable nzSize="middle" [nzData]="documentDetail?.detail?.parameters"
+                [nzShowPagination]="false">
+                <thead>
+                    <tr>
+                        <th>参数名称</th>
+                        <th width="180px">类型</th>
+                        <th width="80px">是否必选</th>
+                        <th width="80px">参数位置</th>
+                        <th width="10%">示例值</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-template ngFor let-data [ngForOf]="parameterTable.data">
+                        <ng-container *ngTemplateOutlet="schemaTemplate1;context:{ parameter: data}"></ng-container>
+                    </ng-template>
+                </tbody>
+            </nz-table>
+            <ng-template #schemaTemplate1 let-parameter="parameter">
+
+                <tr>
+                    <td>
+                            {{parameter.name}}
+                        <span *ngIf="parameter?.schema?.$ref">
+                            <ng-container
+                                *ngTemplateOutlet="expandIconTemplate;context:{ expandKey: parameter?.expandKey }">
+                            </ng-container>
+                            {{parameter?.leftSymbol + (mapOfExpandData[parameter?.expandKey]? "": "..." + parameter?.rightSymbol)}}
+                        </span>
+                    </td>
+                    <td>{{parameter?.definition? parameter?.definition?.type: parameter?.type}}</td>
+                    <td>{{parameter?.required}}</td>
+                    <td>{{parameter?.in}}</td>
+                    <td>{{parameter?.example ? parameter?.example : "-"}}</td>
+                    <td>{{parameter?.description}}</td>
+                </tr>
+
+                <ng-template [ngIf]="mapOfExpandData[parameter?.expandKey]">
+                    <ng-container *ngFor="let propertie of parameter?.definition?.properties| keyvalue">
+                        <ng-container *ngTemplateOutlet="propertieTemplate1;context:{
+                            propertieKey: propertie.key,propertieValue: propertie.value,
+                            parentExpandKey: parameter?.expandKey,level: 1}">
+                        </ng-container>
+                    </ng-container>
+                </ng-template>
+
+                <tr [nzExpand]="mapOfExpandData[parameter?.expandKey]">
+                    <td colspan="5">{{parameter?.rightSymbol}}</td>
+                </tr>
+
+            </ng-template>
+
+            <ng-template #propertieTemplate1 let-propertieKey="propertieKey" let-propertieValue="propertieValue"
+                let-parentExpandKey="parentExpandKey" let-level="level">
+
+                <tr [nzExpand]="mapOfExpandData[parentExpandKey]" [ngStyle]="{'padding-left.px':level * 25}">
+                    <td [ngStyle]="{'padding-left.px':level * 25}">
+                        {{propertieKey}}
+                        <ng-template [ngIf]="propertieValue?.definition">
+                            <ng-container
+                                *ngTemplateOutlet="expandIconTemplate;context:{ expandKey: propertieValue?.expandKey }">
+                            </ng-container>
+                            {{propertieValue?.leftSymbol + (mapOfExpandData[propertieValue?.expandKey]? "": "..." + propertieValue?.rightSymbol)}}
+                        </ng-template>
+                    </td>
+                    <td>{{processPropertieValue(propertieValue, propertieValue?.definition)}}</td>
+                    <td>{{propertieValue?.required}}</td>
+                    <td>-</td>
+                    <td>{{propertieValue?.example ? propertieValue?.example : "-"}}</td>
+                    <td>{{propertieValue?.description}}</td>
+                </tr>
+
+                <ng-template [ngIf]="mapOfExpandData[propertieValue?.expandKey]">
+                    <ng-container *ngFor="let propertie of propertieValue?.definition?.properties| keyvalue">
+                        <ng-container *ngTemplateOutlet="propertieTemplate1;
+                        context:{propertieKey: propertie?.key,propertieValue: propertie?.value,
+                            parentExpandKey: propertieValue?.expandKey, level: 1+1}">
+                        </ng-container>
+                    </ng-container>
+                </ng-template>
+
+                <tr [nzExpand]="mapOfExpandData[propertieValue?.expandKey]">
+                    <td colspan="5" [ngStyle]="{'padding-left.px': level * 25}">
+                        {{propertieValue?.rightSymbol}}</td>
+                </tr>
+
+            </ng-template>
+
+
+
+
+
+            <h2 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">
+                请求参数</h2>
+            <nz-table #parameterTable nzSize="middle" [nzData]="documentDetail?.detail?.parameters"
+                [nzShowPagination]="false">
+                <thead>
+                    <tr>
+                        <th>参数名称</th>
+                        <th width="180px">类型</th>
+                        <th width="80px">是否必选</th>
+                        <th width="80px">参数位置</th>
+                        <th width="10%">示例值</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-template ngFor let-data [ngForOf]="parameterTable.data">
+                        <ng-container *ngTemplateOutlet="schemaTemplate;context:{ parameter: data}"></ng-container>
+                    </ng-template>
+                </tbody>
+            </nz-table>
+        </ng-container>
+        <ng-template #schemaTemplate let-parameter="parameter">
+            <ng-template [ngIf]="parameter?.schema?.$ref"
+                *ngFor="let definition of documentDetail?.doc?.definitions| keyvalue">
+                <ng-container *ngIf="parameter.schema.$ref == '#/definitions/'+ definition.key">
+                    <tr>
+                        <td>
+                            <span *ngIf="parameter.in != 'body'">{{parameter.name}}</span>
+
+                            <ng-container
+                                *ngTemplateOutlet="expandIconTemplate;context:{ expandKey: parameter.schema.$ref + parameter.name }">
+                            </ng-container>
+                            <span *ngIf="mapOfExpandData[parameter.schema.$ref + parameter.name]">{{"{"}}</span>
+                            <span *ngIf="!mapOfExpandData[parameter.schema.$ref + parameter.name]">{{"{...}"}}</span>
+                        </td>
+                        <td>{{definition.value?.type}}</td>
+                        <td>{{parameter?.required}}</td>
+                        <td>{{parameter?.in}}</td>
+                        <td>{{parameter?.example ? parameter?.example : "-"}}</td>
+                        <td>{{parameter?.description}}</td>
+                    </tr>
+                    <!-- <tr [nzExpand]="mapOfExpandData[parameter.schema.$ref + parameter.name]">
+                        <td colspan="5" style="padding-left: 20px">{{"{"}}</td>
+                    </tr> -->
+                    <ng-template [ngIf]="mapOfExpandData[parameter.schema.$ref + parameter.name]">
+                        <ng-container *ngFor="let propertie of definition.value.properties| keyvalue">
+                            <!-- <tr [nzExpand]="mapOfExpandData[parameter.schema.$ref]">
+                            <td></td>
+                            <td>{{propertie.key}}</td>
+                            <td>{{propertie.value?.format ? propertie.value?.format : propertie.value?.type}}
+                            </td>
+                            <td>{{propertie.value?.required}}</td>
+                            <td>-</td>
+                            <td>{{propertie.value?.example ? propertie.value?.example : "-"}}</td>
+                            <td>{{propertie.value?.description}}</td>
+                        </tr> -->
+                            <ng-container *ngTemplateOutlet="propertieTemplate;context:{ 
+                                propertie: propertie, 
+                                parentPropertieRef: parameter.schema.$ref,
+                                parentExpandKey: parameter.schema.$ref + parameter.name,
+                                currentRef: getDefinitionRef(propertie?.value),
+                                level: 1
+                                }">
+                            </ng-container>
+                        </ng-container>
+                    </ng-template>
+                    <tr [nzExpand]="mapOfExpandData[parameter.schema.$ref + parameter.name]">
+
+                        <td colspan="5">{{"}"}}</td>
+                    </tr>
+                </ng-container>
+            </ng-template>
+            <ng-template [ngIf]="!parameter?.schema?.$ref">
+                <tr>
+                    <td>{{parameter?.name}}</td>
+                    <td>{{parameter?.type}}</td>
+                    <td>{{parameter?.required}}</td>
+                    <td>{{parameter?.in}}</td>
+                    <td>{{parameter?.example ? parameter?.example : "-"}}</td>
+                    <td>{{parameter?.description}}</td>
+                </tr>
+            </ng-template>
+        </ng-template>
+        <ng-template #propertieTemplate let-propertie="propertie" let-currentRef="currentRef"
+            let-parentPropertieRef="parentPropertieRef" let-parentExpandKey="parentExpandKey" let-level="level">
+
+            <ng-template [ngIf]="currentRef" *ngFor="let definition of documentDetail?.doc?.definitions | keyvalue;">
+                <ng-container *ngIf="currentRef == '#/definitions/'+ definition.key">
+                    <!-- [nzExpand]="mapOfExpandData[parentExpandKey]" -->
+                    <tr>
+                        <td [ngStyle]="{'padding-left.px':level * 25}">
+                            {{propertie.key}}
+                            <ng-container
+                                *ngTemplateOutlet="expandIconTemplate;context:{ expandKey: parentExpandKey + currentRef + propertie.key }">
+                            </ng-container>
+                            {{propertie?.value?.type}}
+                            <ng-container [ngSwitch]="propertie?.value?.type">
+                                <ng-container *ngSwitchCase="'array'">[
+                                    <ng-container [ngSwitch]="definition.value?.type">
+                                        <ng-container *ngSwitchCase="'array'">[</ng-container>
+                                        <ng-container *ngSwitchCase="'object'">{{"{"}}</ng-container>
+                                    </ng-container>
+                                </ng-container>
+                                <ng-container *ngSwitchCase="'object'">{{"{"}}</ng-container>
+                            </ng-container>
+
+                            <span *ngIf="!mapOfExpandData[parentExpandKey + currentRef + propertie.key]">
+                                ...
+                                <ng-container [ngSwitch]="propertie?.value?.type">
+                                    <ng-container *ngSwitchCase="'array'">]
+                                        <ng-container [ngSwitch]="definition.value?.type">
+                                            <ng-container *ngSwitchCase="'array'">]</ng-container>
+                                            <ng-container *ngSwitchCase="'object'">{{"}"}}</ng-container>
+                                        </ng-container>
+                                    </ng-container>
+                                    <ng-container *ngSwitchCase="'object'">{{"}"}}</ng-container>
+                                </ng-container>
+                            </span>
+                            <!-- {{ propertie?.value?.type? "[" : "{" }} -->
+                        </td>
+                        <td>
+                            <ng-container *ngIf="propertie?.value?.type">
+                                {{propertie?.value?.type}}&lt;{{definition.value?.format ? definition.value?.format : definition.value?.type}}&gt;
+                            </ng-container>
+                            <ng-container *ngIf="!propertie?.value?.type">
+                                {{definition.value?.format ? definition.value?.format : definition.value?.type}}
+                            </ng-container>
+
+                        </td>
+                        <td>{{definition.value?.required}}</td>
+                        <td>-</td>
+                        <td>{{definition.value?.example ? definition.value?.example : "-"}}</td>
+                        <td>{{definition.value?.description}}</td>
+                    </tr>
+                    <!-- <tr *ngIf="mapOfExpandData[parentExpandKey + currentRef + propertie.key]">
+
+                        <td colspan="6" [ngStyle]="{'padding-left.px': (level + 1) * 25}">
+                            {{ propertie?.value?.type? "[" : "{" }}</td>
+                    </tr> -->
+                    <!-- <tr [nzExpand]="mapOfExpandData[propertie?.value?.$ref]">
+                        <td colspan="7">
+                            <nz-table nzSize="middle" nzTemplateMode>
+                                <thead>
+                                    <tr>
+                                        <th width="40px"></th>
+                                        <th width="10%">参数名称</th>
+                                        <th width="80px">类型</th>
+                                        <th width="80px">是否必选</th>
+                                        <th width="80px">参数位置</th>
+                                        <th width="10%">示例值</th>
+                                        <th>描述</th>
+                                    </tr>
+                                </thead>
+                                <tbody> -->
+                    <ng-container *ngFor="let propertie2 of definition.value.properties| keyvalue">
+                        <!-- <tr [nzExpand]="mapOfExpandData[propertie?.value?.$ref]">
+                            <td></td>
+                            <td>{{propertie2.key}}</td>
+                            <td>{{propertie2.value?.format ? propertie2.value?.format : propertie2.value?.type}}
+                            </td>
+                            <td>{{propertie2.value?.required}}</td>
+                            <td>-</td>
+                            <td>{{propertie2.value?.example ? propertie2.value?.example : "-"}}</td>
+                            <td>{{propertie2.value?.description}}</td>
+                        </tr> -->
+
+                        <ng-container *ngTemplateOutlet="propertieTemplate;
+                                context:{ 
+                                    propertie: propertie2,
+                                    parentExpandKey: parentExpandKey + currentRef + propertie.key,
+                                    parentPropertieRef: getDefinitionRef(propertie?.value),
+                                    currentRef: getDefinitionRef(propertie2?.value),
+                                    level: level + 1
+                                }">
+                        </ng-container>
+                    </ng-container>
+                    <tr [nzExpand]="mapOfExpandData[parentExpandKey + currentRef + propertie.key]">
+                        <td colspan="5" [ngStyle]="{'padding-left.px': level * 25}">
+                            {{propertie?.value?.type? "]" : "}" }}</td>
+                    </tr>
+                    <!-- </tbody>
+                            </nz-table>
+                        </td>
+                    </tr> -->
+
+                </ng-container>
+            </ng-template>
+            <ng-template [ngIf]="!currentRef">
+                <!-- [nzExpand]="mapOfExpandData[parentExpandKey]" -->
+                <tr [nzExpand]="mapOfExpandData[parentExpandKey]" [ngStyle]="{'padding-left.px':level * 25}">
+
+                    <td [ngStyle]="{'padding-left.px':level * 25}">{{propertie.key}}</td>
+                    <td>{{propertie.value?.format ? propertie.value?.format : propertie.value?.type}}
+                    </td>
+                    <td>{{propertie.value?.required}}</td>
+                    <td>-</td>
+                    <td>{{propertie.value?.example ? propertie.value?.example : "-"}}</td>
+                    <td>{{propertie.value?.description}}</td>
+                </tr>
+            </ng-template>
+
+        </ng-template>
+
+
+
+
+
+
+
+        <h2 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">
+            响应状态</h2>
+        <nz-table #responsesTable nzSize="middle" nzTemplateMode>
+            <thead>
+                <tr>
+                    <th width="10%">HTTP状态码</th>
+                    <th>响应的数据引用</th>
+                    <th>描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngFor="let response of documentDetail?.detail?.responses| keyvalue">
+                    <tr>
+                        <td>{{response.key}}</td>
+                        <td>
+                            <span *ngIf="!response.value?.schema?.$ref">-</span>
+                            <a *ngIf="response.value?.schema?.$ref"
+                                (click)="goTo(subDefinitionRef(response.value?.schema?.$ref))">
+                                {{subDefinitionRef(response.value?.schema?.$ref)}}</a></td>
+                        <td>{{response.value?.description}}</td>
+                    </tr>
+                </ng-container>
+            </tbody>
+        </nz-table>
+        <h2 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">
+            返回数据</h2>
+        <ng-container *ngFor="let response of documentDetail?.detail?.responses| keyvalue">
+            <ng-container *ngFor="let definition of documentDetail?.doc?.definitions| keyvalue">
+                <ng-container *ngIf="response.value?.schema?.$ref == '#/definitions/'+ definition.key">
+                    <nz-table #responsesTable nzSize="middle" nzTemplateMode>
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>数据名称</th>
+                                <th>类型</th>
+                                <th>示例值</th>
+                                <th>描述</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td nzShowExpand [(nzExpand)]="mapOfExpandData[response.value?.schema?.$ref]"></td>
+                                <td id="{{definition.key}}">{{definition.key}}</td>
+                                <td>{{definition.value?.format ? definition.value?.format : definition.value?.type}}
+                                </td>
+                                <td>{{definition.value?.example ? definition.value?.example : "-"}}</td>
+                                <td>{{definition.value?.description}}</td>
+                            </tr>
+                            <tr *ngFor="let propertie of definition.value.properties| keyvalue"
+                                [nzExpand]="mapOfExpandData[response.value?.schema?.$ref]">
+                                <td></td>
+                                <td>{{propertie.key}}</td>
+                                <td>{{propertie.value?.format ? propertie.value?.format : propertie.value?.type}}
+                                </td>
+                                <td>{{propertie.value?.example ? propertie.value?.example : "-"}}</td>
+                                <td>{{propertie.value?.description}}</td>
+                            </tr>
+                        </tbody>
+                    </nz-table>
+                </ng-container>
+            </ng-container>
+        </ng-container>
+        <nz-table #middleTable nzSize="middle" [nzData]="data">
+            <thead>
+                <tr>
+                    <th>数据名称</th>
+                    <th>类型</th>
+                    <th>示例值</th>
+                    <th>描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>code</td>
+                    <td>int</td>
+                    <td>200</td>
+                    <td>状态码</td>
+                </tr>
+                <tr>
+                    <td>message</td>
+                    <td>int</td>
+                    <td>操作成功</td>
+                    <td>操作结果消息</td>
+                </tr>
+                <tr>
+                    <td>data</td>
+                    <td>int</td>
+                    <td>{{"{}"}}</td>
+                    <td>数据</td>
+                </tr>
+            </tbody>
+        </nz-table>
+    </nz-tab>
+    <nz-tab nzTitle="接口调试">
+        <h2 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">
+            请求参数</h2>
+        <h3 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">
+            URL参数</h3>
+        <nz-table #middleTable nzSize="middle" [nzData]="data">
+            <thead>
+                <tr>
+                    <th>参数名称</th>
+                    <th>类型</th>
+                    <th>是否必选</th>
+                    <th>示例值</th>
+                    <th>描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let data of middleTable.data">
+                    <td>uid</td>
+                    <td>int</td>
+                    <td>是</td>
+                    <td>0</td>
+                    <td>用户ID</td>
+                </tr>
+                <tr>
+                    <td>uid</td>
+                    <td>int</td>
+                    <td>是</td>
+                    <td>0</td>
+                    <td>用户ID</td>
+                </tr>
+            </tbody>
+        </nz-table>
+        <h2 style="font-size: 20px;line-height: 20px;font-weight: 700;margin-top: 30px;margin-bottom: 16px;">
+            返回数据</h2>
+        <nz-table #middleTable nzSize="middle" [nzData]="data">
+            <thead>
+                <tr>
+                    <th>数据名称</th>
+                    <th>类型</th>
+                    <th>示例值</th>
+                    <th>描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>code</td>
+                    <td>int</td>
+                    <td>200</td>
+                    <td>状态码</td>
+                </tr>
+                <tr>
+                    <td>message</td>
+                    <td>int</td>
+                    <td>操作成功</td>
+                    <td>操作结果消息</td>
+                </tr>
+                <tr>
+                    <td>data</td>
+                    <td>int</td>
+                    <td>{{"{}"}}</td>
+                    <td>数据</td>
+                </tr>
+            </tbody>
+        </nz-table>
+    </nz-tab>
+</nz-tabset>
+<ng-template #expandIconTemplate let-expandKey="expandKey">
+    <!-- <span
+        class="ant-table-row-expand-icon ng-star-inserted {{mapOfExpandData[expandKey] ? 'ant-table-row-expanded' : 'ant-table-row-collapsed'}} "
+        (click)="mapOfExpandData[expandKey] = !mapOfExpandData[expandKey]"></span> -->
+    <i nz-icon nzType="{{mapOfExpandData[expandKey] ? 'down' : 'right'}}" nzTheme="outline"
+        (click)="mapOfExpandData[expandKey] = !mapOfExpandData[expandKey]"
+        style="cursor: pointer;margin: 0px 10px 0px 10px"></i>
+    <!-- <i nz-icon nzType="down" nzTheme="outline"></i> -->
+</ng-template>
