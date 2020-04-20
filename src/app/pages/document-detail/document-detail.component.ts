@@ -42,34 +42,23 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
       parameter.hiddenName = parameter.in === "body";
       // 若该参数以下条件成立，表示数据是一个引用对象
       if (parameter.schema && parameter.schema.$ref) {
-        // 找到对应的引用对象
-        // let definition = parameter.definition = this.getDefinitionBySchemaRef(parameter.schema.$ref);
-        // let definition = parameter.definition = this.processSchemaRefDefinition(parameter.schema.$ref);
         // 为当前参数生成开始和结束的符号
         parameter.expandKey = parameter.schema.$ref + "/" + parameter.name
         this.generateExpandSymbolOfParameter(parameter, parameter.definition = this.processSchemaRefDefinition(parameter.schema.$ref, parameter.expandKey));
-        // this.processSchemaRefDefinition(parameter.schema.$ref);
-        // 
-        // for (const key in definition.properties) {
-
-        //   let propertie = definition.properties[key];
-        //   if (propertie['$ref'] != undefined) {
-        //     let definition2 = propertie.definition = this.getDefinitionBySchemaRef(propertie.$ref);
-        //     this.generateExpandSymbolOfPropertie(propertie, definition2);
-
-        //   }
-        // }
-        // // 存在必填属性数组，将必填标识添加到对应的属性上
-        // if (definition.required) {
-        //   for (const propertieName of definition.required) {
-        //     definition.properties[propertieName]["required"] = true;
-        //   }
-        // }
       }
       // console.log(parameter)
     }
-    console.log(this.documentParameterDetail.body)
+    // console.log(this.documentParameterDetail.body)
+
+    for (const key in this.documentDetail.detail.responses) {
+      var response = this.documentDetail.detail.responses[key];
+      if (response.schema && response.schema.$ref) {
+        response.expandKey = "response/" + response.schema.$ref;
+        response.definition = this.processSchemaRefDefinition(response.schema.$ref, response.expandKey);
+      }
+    }
     // console.log(this.documentDetail.detail.parameters)
+    console.log(this.documentDetail.detail.responses)
     // console.log("============1=========")
     // this.documentDetail.detail.parameters = this.documentDetail.detail.parameters.sort((_, p2) => {
     //   return p2.in === "body" || p2.in === "query" ? -1 : 1;
