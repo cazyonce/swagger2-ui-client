@@ -16,6 +16,12 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
   mapOfExpandData: { [key: string]: boolean } = {};
   currentURLProtocol: string;
   currentURLHost: string;
+  documentParameterOrder = ["path", "query", "body"];
+  documentParameterDetail: {
+    path?: Array<ParameterEntity>,
+    query?: Array<ParameterEntity>,
+    body?: Array<ParameterEntity>,
+  } = {};
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute) {
     this.currentURLProtocol = window.location.protocol;
@@ -23,9 +29,17 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    if (!this.documentDetail.detail.parameters) {
+      return;
+    }
     for (const parameter of this.documentDetail.detail.parameters) {
-      parameter.hiddenName = parameter.in === "body";
+      var p = this.documentParameterDetail[parameter.in];
+      if (!p) {
+        this.documentParameterDetail[parameter.in] = p = new Array<ParameterEntity>();
+      }
+      p.push(parameter);
 
+      parameter.hiddenName = parameter.in === "body";
       // 若该参数以下条件成立，表示数据是一个引用对象
       if (parameter.schema && parameter.schema.$ref) {
         // 找到对应的引用对象
@@ -52,8 +66,16 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
         //   }
         // }
       }
-      console.log(parameter)
+      // console.log(parameter)
     }
+    console.log(this.documentParameterDetail.body)
+    // console.log(this.documentDetail.detail.parameters)
+    // console.log("============1=========")
+    // this.documentDetail.detail.parameters = this.documentDetail.detail.parameters.sort((_, p2) => {
+    //   return p2.in === "body" || p2.in === "query" ? -1 : 1;
+    // })
+    // console.log("============2=========")
+    // console.log(this.documentDetail.detail.parameters)
   }
 
   processSchemaRefDefinition(schemaRef: string, parentExpandKey: string): SchemaDefinintionEntity {
@@ -71,10 +93,24 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
         // 找到属性对应的数据模型并为当前属性生成开始和结束的符号
         propertie.expandKey = parentExpandKey ? parentExpandKey + "/" + key : schemaRef + "/" + key;
         this.generateExpandSymbolOfPropertie(propertie, propertie.definition = this.processSchemaRefDefinition(propertie.$ref, propertie.expandKey));
-      } else if (propertie.items != undefined && propertie.items.$ref != undefined) { // 这是个数组
+        // } else if (propertie.items != undefined && propertie.items.$ref != undefined) { // 这是个数组
+        //   // 找到属性对应的数据模型并为当前属性生成开始和结束的符号
+        //   propertie.expandKey = parentExpandKey ? parentExpandKey + "/" + key : schemaRef + "/" + key;
+        //   this.generateExpandSymbolOfPropertie(propertie, propertie.definition = this.processSchemaRefDefinition(propertie.items.$ref, propertie.expandKey));
+        //   this.processPropertieArraySchemaRefDefinition(schemaRef, parentExpandKey, key, propertie)
+
+      } else if (propertie.items != undefined) { // 这是个数组
         // 找到属性对应的数据模型并为当前属性生成开始和结束的符号
+        // propertie.expandKey = parentExpandKey ? parentExpandKey + "/" + key : schemaRef + "/" + key;
+        // this.generateExpandSymbolOfPropertie(propertie, propertie.definition = this.processSchemaRefDefinition(propertie.items.$ref, propertie.expandKey));
+        this.processPropertieArraySchemaRefDefinition(propertie, schemaRef, parentExpandKey, key, propertie)
+
+      } else if (propertie.additionalProperties) {
         propertie.expandKey = parentExpandKey ? parentExpandKey + "/" + key : schemaRef + "/" + key;
-        this.generateExpandSymbolOfPropertie(propertie, propertie.definition = this.processSchemaRefDefinition(propertie.items.$ref, propertie.expandKey));
+        if (propertie.additionalProperties.$ref) {
+          propertie.definition = this.processSchemaRefDefinition(propertie.additionalProperties.$ref, propertie.expandKey);
+        }
+        this.generateExpandSymbolOfPropertie(propertie, propertie.definition);
       }
     }
     // 存在必填属性数组，将必填标识添加到对应的属性上
@@ -86,6 +122,32 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
     return definition;
   }
 
+  processPropertieArraySchemaRefDefinition(firstPropertie: PropertieEntity, schemaRef: string, parentExpandKey: string, propertieKey: string, propertie: any) {
+
+    if (propertie.items.$ref != undefined) {
+      // 找到属性对应的数据模型并为当前属性生成开始和结束的符号
+      firstPropertie.expandKey = parentExpandKey ? parentExpandKey + "/" + propertieKey : schemaRef + "/" + propertieKey;
+      this.generateExpandSymbolOfPropertie(propertie, firstPropertie.definition = this.processSchemaRefDefinition(propertie.items.$ref, propertie.expandKey));
+      firstPropertie.customType = firstPropertie.customType ? firstPropertie.customType + propertie.type + "<" : propertie.type + "<";
+      firstPropertie.customType = firstPropertie.customType + firstPropertie.definition.type + ">";
+      if (firstPropertie != propertie) {
+        firstPropertie.leftSymbol += propertie.leftSymbol;
+        firstPropertie.rightSymbol = propertie.rightSymbol + firstPropertie.rightSymbol;
+      }
+      return;
+    } else if (propertie.items.items) {
+      this.generateExpandSymbolOfPropertie(propertie);
+      firstPropertie.customType = firstPropertie.customType ? firstPropertie.customType + propertie.type + "<" : propertie.type + "<";
+      if (firstPropertie != propertie) {
+        firstPropertie.leftSymbol += propertie.leftSymbol;
+        firstPropertie.rightSymbol = propertie.rightSymbol + firstPropertie.rightSymbol;
+      }
+      this.processPropertieArraySchemaRefDefinition(firstPropertie, schemaRef, parentExpandKey, propertieKey, propertie.items);
+      firstPropertie.customType = firstPropertie.customType + ">";
+    } else {
+      firstPropertie.customType = propertie.type + "<" + propertie.items.type + ">";
+    }
+  }
   generateExpandSymbolOfParameter(parameter: ParameterEntity, definition: SchemaDefinintionEntity) {
     if (definition.type) {
       if (definition.type === "array") {
@@ -109,7 +171,7 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
     }
   }
 
-  generateExpandSymbolOfPropertie(propertie: PropertieEntity, definition: SchemaDefinintionEntity) {
+  generateExpandSymbolOfPropertie(propertie: PropertieEntity, definition?: SchemaDefinintionEntity) {
     // if (definition.type) {
     //   if (definition.type === "array") {
     //     propertie.leftSymbol += "[";
@@ -119,6 +181,7 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
     //     propertie.rightSymbol = "{" + propertie.rightSymbol;
     //   }
     // }
+    var object = false;
     // 属性存在类型
     if (propertie.type) {
       if (propertie.type === "array") {
@@ -130,6 +193,7 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
           propertie.rightSymbol = "]";
         }
       } else if (propertie.type === "object") {
+        object = true;
         if (propertie.leftSymbol) {
           propertie.leftSymbol += "{";
           propertie.rightSymbol = "}" + propertie.rightSymbol;
@@ -139,7 +203,7 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
         }
       }
     }
-    if (definition.type) {
+    if (definition && definition.type) {
       if (definition.type === "array") {
         if (propertie.leftSymbol) {
           propertie.leftSymbol += "[";
@@ -149,7 +213,7 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
           propertie.rightSymbol = "]";
         }
 
-      } else if (definition.type === "object") {
+      } else if (!object && definition.type === "object") {
         if (propertie.leftSymbol) {
           propertie.leftSymbol += "{";
           propertie.rightSymbol = "}" + propertie.rightSymbol;
@@ -165,7 +229,7 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
     const definitions = this.documentDetail.doc.definitions;
     for (const key in definitions) {
       if (schemaRef == '#/definitions/' + key) {
-        return definitions[key];
+        return JSON.parse(JSON.stringify(definitions[key]));
       }
     }
     return null; // 这个数据正常的情况下是不会执行到该位置的
@@ -208,12 +272,24 @@ export class DocumentDetailComponent implements OnInit, AfterViewInit {
   }
 
   processPropertieValue(propertie: PropertieEntity, propertieDefinition: SchemaDefinintionEntity): string {
-    var type = propertie.format ? propertie.format : propertie.type;
+    if (propertie.customType) {
+      return propertie.customType
+    }
     if (propertieDefinition && propertieDefinition.type) {
+      return propertieDefinition.type;
+    }
+    return propertie.format ? propertie.format : propertie.type;
+  }
+  processPropertieValue2(propertie: PropertieEntity, propertieDefinition: SchemaDefinintionEntity): string {
+    var type = propertie.format ? propertie.format : propertie.type;
+    if (type !== "object" && propertieDefinition && propertieDefinition.type) {
       if (type) {
         return type + "<" + propertieDefinition.type + ">";
       }
       return propertieDefinition.type;
+    }
+    if (propertie.items && propertie.items.type) {
+      return type + "<" + propertie.items.type + ">";
     }
     return type;
   }
