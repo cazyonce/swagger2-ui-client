@@ -7,7 +7,7 @@ import { DocumentSynopsisComponent } from './pages/document-synopsis/document-sy
 
 const routes: Routes = [
 
-  { path: '', pathMatch: 'full', redirectTo: '/doc/admin' },
+  { path: '', pathMatch: 'full', redirectTo: '/doc/example' },
 
   {
     path: "doc/:group", component: DocumentComponent,
